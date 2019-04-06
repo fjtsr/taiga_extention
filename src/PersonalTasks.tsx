@@ -9,6 +9,22 @@ import classNames from "classnames";
 
 import styles from "./PersonalTasks.module.css";
 
+const calcResultPerEstimate = (e: number, r: number) => {
+  const res = r / e;
+  if (Number.isFinite(res)) {
+    return Math.round(res * 100);
+  } else {
+    return 0;
+  }
+};
+
+const rpeTextClass = (rpe: number) =>
+  classNames(
+    "text-right",
+    rpe > 120 ? "text-warning" : undefined,
+    rpe > 150 ? ["text-danger", "font-weight-bold"] : undefined
+  );
+
 const UserStoryLink = ({ url, item }: { url: string; item: ITask }) => {
   const {
     user_story_extra_info,
@@ -76,6 +92,7 @@ export const PersonalTasks = ({ userInfo }: { userInfo: IUser }) => {
     totalE = totalE + getCustomVal(custom_value_map, item, customAttrE.id);
     totalR = totalR + getCustomVal(custom_value_map, item, customAttrR.id);
   });
+  const totalRpe = calcResultPerEstimate(totalE, totalR);
 
   return (
     <Table bordered size="sm" className={styles.overflow}>
@@ -86,6 +103,7 @@ export const PersonalTasks = ({ userInfo }: { userInfo: IUser }) => {
           <th>Status</th>
           <th>{customAttrE.name}</th>
           <th>{customAttrR.name}</th>
+          <th>{`${customAttrR.name} / ${customAttrE.name}`}</th>
           <th>Grade</th>
         </tr>
       </thead>
@@ -94,6 +112,7 @@ export const PersonalTasks = ({ userInfo }: { userInfo: IUser }) => {
         {items.map(item => {
           const e = getCustomVal(custom_value_map, item, customAttrE.id);
           const r = getCustomVal(custom_value_map, item, customAttrR.id);
+          const rpe = calcResultPerEstimate(e, r);
           return (
             <tr key={item.id}>
               <td className={item.is_closed ? "table-secondary" : undefined}>
@@ -106,14 +125,8 @@ export const PersonalTasks = ({ userInfo }: { userInfo: IUser }) => {
                 {item.status_extra_info.name}
               </td>
               <td className="text-right">{e}</td>
-              <td
-                className={classNames(
-                  "text-right",
-                  r > e ? "text-danger" : undefined
-                )}
-              >
-                {r}
-              </td>
+              <td className="text-right">{r}</td>
+              <td className={rpeTextClass(rpe)}>{`${rpe} %`}</td>
               <td>
                 <Medal e={e} r={r} />
               </td>
@@ -124,14 +137,8 @@ export const PersonalTasks = ({ userInfo }: { userInfo: IUser }) => {
         <tr>
           <td colSpan={3}>Total</td>
           <td className="text-right">{totalE}</td>
-          <td
-            className={classNames(
-              "text-right",
-              totalR > totalE ? "text-danger" : undefined
-            )}
-          >
-            {totalR}
-          </td>
+          <td className="text-right">{totalR}</td>
+          <td className={rpeTextClass(totalRpe)}>{`${totalRpe} %`}</td>
           <td>
             <Medal e={totalE} r={totalR} />
           </td>
